@@ -1,11 +1,14 @@
 ﻿using FirstProject_Praksa.Database;
 using FirstProject_Praksa.Dto;
 using FirstProject_Praksa.Service.CharacterService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FirstProject_Praksa.Controllers
 {
+    [Authorize]
     [Route("[controller]")]
     [ApiController]
     public class CharacterController : ControllerBase
@@ -29,6 +32,8 @@ namespace FirstProject_Praksa.Controllers
         [HttpGet("GetAll")]
         public async Task<ActionResult<ServiceResponse<List<GetCharacterDtos>>>> GetAll()
         {
+           // int id = int.Parse(User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value);
+           //koristimo ako hocemo da prikazemo character-s zapise za autentificiranog korisnika(trenutnog)
             return Ok(await _service.GetAll());
         }
         [HttpPost]
