@@ -1,9 +1,10 @@
 ﻿using FirstProject_Praksa.Enum;
 
-namespace FirstProject_Praksa.Dto
+namespace FirstProject_Praksa.Dto.Characters
 {
-    public class AddCharacterDtos
+    public class UpdateCharacterDtos
     {
+        public int Id { get; set; }
         public string Name { get; set; } = "Haris";
         public int LifePoints { get; set; } = 100;
         public int Strength { get; set; } = 10;

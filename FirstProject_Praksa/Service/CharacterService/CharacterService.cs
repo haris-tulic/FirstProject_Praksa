@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using FirstProject_Praksa.Database;
-using FirstProject_Praksa.Dto;
+using FirstProject_Praksa.Dto.Characters;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
@@ -46,12 +46,20 @@ namespace FirstProject_Praksa.Service.CharacterService
            
             try
             {
-                var character = await _dataContext.Characters.FirstOrDefaultAsync(c => c.Id == id);
-                 _dataContext.Characters.Remove(character);
-                await _dataContext.SaveChangesAsync();
-                serviceResponse.Data = _mapper.Map<List<GetCharacterDtos>>(await _dataContext.Characters.ToListAsync());
-                serviceResponse.Succees = true;
-                serviceResponse.Message = "Successfully removed character: " + character.Id + ". " + character.Name;
+                var character = await _dataContext.Characters.FirstOrDefaultAsync(c => c.Id == id && c.User.Id==GetUserID());
+                if (character!=null)
+                {
+                    _dataContext.Characters.Remove(character);
+                    await _dataContext.SaveChangesAsync();
+                    serviceResponse.Data = _mapper.Map<List<GetCharacterDtos>>(await _dataContext.Characters.Where(x=>x.User.Id==GetUserID()).ToListAsync());
+                    serviceResponse.Succees = true;
+                    serviceResponse.Message = "Successfully removed character: " + character.Id + ". " + character.Name;
+                }
+                else
+                {
+                    serviceResponse.Succees = false;
+                    serviceResponse.Message = "Character not found!";
+                }
             }
             catch (Exception ex)
             {
@@ -67,8 +75,7 @@ namespace FirstProject_Praksa.Service.CharacterService
             var serviceResponse=new ServiceResponse<GetCharacterDtos>();
             try
             {
-                var character =await _dataContext.Characters.FirstOrDefaultAsync(c => c.Id == id);
-                //var character = await _dataContext.Characters.Where(x => x.User.Id == GetUSerID).ToList();
+                var character =await _dataContext.Characters.Include(x=>x.Weapon).Include(x=>x.Skills).FirstOrDefaultAsync(c => c.Id == id && c.User.Id == GetUserID());
                 serviceResponse.Data = _mapper.Map<GetCharacterDtos>(character);
                 serviceResponse.Succees = true;
                 serviceResponse.Message = "Successfully returned character: " + id + ". " + serviceResponse.Data.Name;
@@ -86,7 +93,7 @@ namespace FirstProject_Praksa.Service.CharacterService
         public async Task<ServiceResponse<List<GetCharacterDtos>>> GetAll()
         {
             var serviceResponse=new ServiceResponse<List<GetCharacterDtos>>();
-            var list=await _dataContext.Characters.Include(x=>x.User).Where(x=>x.User.Id==GetUserID()).ToListAsync();
+            var list=await _dataContext.Characters.Include(x=>x.User).Include(x=>x.Weapon).Where(x=>x.User.Id==GetUserID()).ToListAsync();
             serviceResponse.Data = _mapper.Map<List<GetCharacterDtos>>(list);
             serviceResponse.Message = "Successfully returned all characters!";
             return serviceResponse;
@@ -97,13 +104,20 @@ namespace FirstProject_Praksa.Service.CharacterService
             var serviceResponse = new ServiceResponse<GetCharacterDtos>();
             try
             {
-                var character =await _dataContext.Characters.FirstOrDefaultAsync(c => c.Id == updateCharacter.Id);
-                _mapper.Map(updateCharacter, character);
-                await _dataContext.SaveChangesAsync();
-                serviceResponse.Data = _mapper.Map<GetCharacterDtos>(character);
-                serviceResponse.Succees = true;
-                serviceResponse.Message = "Successfully changed character with ID: " + character.Id + ". " + character.Name;
-
+                var character =await _dataContext.Characters.Include(x=>x.User).FirstOrDefaultAsync(c => c.Id == updateCharacter.Id && c.User.Id==GetUserID());
+                if (character != null)
+                {
+                    _mapper.Map(updateCharacter, character);
+                    await _dataContext.SaveChangesAsync();
+                    serviceResponse.Data = _mapper.Map<GetCharacterDtos>(character);
+                    serviceResponse.Succees = true;
+                    serviceResponse.Message = "Successfully changed character with ID: " + character.Id + ". " + character.Name;
+                }
+                else
+                {
+                    serviceResponse.Succees = false;
+                    serviceResponse.Message = "Character can not be updated!";
+                }
             }
             catch (Exception ex)
             {
@@ -113,6 +127,44 @@ namespace FirstProject_Praksa.Service.CharacterService
             }
             return serviceResponse;
 
+        }
+
+        public async Task<ServiceResponse<GetCharacterDtos>> AddCharacterSkill(AddCharacterSkillDto newCharacterSkill)
+        {
+            var response = new ServiceResponse<GetCharacterDtos>();
+            try
+            {
+                var character = await _dataContext.Characters.
+                Include(x => x.User)
+                .Include(x => x.Weapon)
+                .Include(x=>x.Skills)
+                .FirstOrDefaultAsync(x => x.Id == newCharacterSkill.CharacterId && x.User.Id == GetUserID());
+                
+                if (character == null)
+                {
+                    response.Succees = false;
+                    response.Message = "Character not found!";
+                    return response;
+                }
+                
+                var skill = await _dataContext.Skills.Include(s=>s.Characters).FirstOrDefaultAsync(s => s.Id == newCharacterSkill.SkillId);
+                if (skill==null)
+                {
+                    response.Succees = false;
+                    response.Message = "Skill not found!";
+                    return response;
+                }
+                character.Skills.Add(skill);
+                await _dataContext.SaveChangesAsync();
+                response.Succees = true;
+                response.Data=_mapper.Map<GetCharacterDtos>(character); 
+            }
+            catch (Exception ex)
+            {
+                response.Succees = false;
+                response.Message=ex.Message;
+            }
+            return response;
         }
     }
 }

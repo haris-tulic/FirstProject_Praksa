@@ -1,5 +1,5 @@
 ﻿using FirstProject_Praksa.Database;
-using FirstProject_Praksa.Dto;
+using FirstProject_Praksa.Dto.Characters;
 using FirstProject_Praksa.Service.CharacterService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -55,6 +55,16 @@ namespace FirstProject_Praksa.Controllers
         public async Task<ActionResult<ServiceResponse<List<GetCharacterDtos>>>> Delete(int id)
         {
             var response = await _service.DeleteCharacter(id);
+            if (response.Data==null)
+            {
+                return NotFound(response);
+            }
+            return Ok(response);
+        }
+        [HttpPost("Skill")]
+        public async Task<ActionResult<ServiceResponse<GetCharacterDtos>>> AddNewCharacterSkill(AddCharacterSkillDto newCharacterSkill)
+        {
+            var response = await _service.AddCharacterSkill(newCharacterSkill);
             if (response.Data==null)
             {
                 return NotFound(response);
