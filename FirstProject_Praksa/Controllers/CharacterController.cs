@@ -8,7 +8,7 @@ using System.Security.Claims;
 
 namespace FirstProject_Praksa.Controllers
 {
-    [Authorize]
+    [Authorize(Roles ="Admin,Player")]
     [Route("[controller]")]
     [ApiController]
     public class CharacterController : ControllerBase

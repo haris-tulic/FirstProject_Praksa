@@ -7,5 +7,6 @@
         public byte[] PasswordSalt { get; set; }
         public string UserName { get; set; }
         public List<Character> Characters { get; set; }
+        public string Role { get; set; }
     }
 }

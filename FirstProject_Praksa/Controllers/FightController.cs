@@ -22,7 +22,7 @@ namespace FirstProject_Praksa.Controllers
             var result = await _service.FightSkill(skill);
             if (result == null)
                 return BadRequest(result);
-            return Ok(result);  
+            return Ok(result);
         }
         [HttpPost("FightWeapon")]
         public async Task<ActionResult<ServiceResponse<AttackResultDto>>> FightWeapon(WeaponAttackDto weapon)
@@ -36,8 +36,15 @@ namespace FirstProject_Praksa.Controllers
         public async Task<ActionResult<ServiceResponse<FightResultDto>>> FinalFight(FightRequestDto fight)
         {
             var result = await _service.FinalFight(fight);
+
             if (result == null)
                 return BadRequest(result);
+            return Ok(result);
+        }
+        [HttpGet("HighScore")]
+        public async Task<ActionResult<ServiceResponse<List<HighScoreDto>>>> GetHighScore()
+        {
+            var result = await _service.GetHighScore();
             return Ok(result);
         }
     }

@@ -9,6 +9,7 @@ namespace FirstProject_Praksa.Service.Fight
 
         Task<ServiceResponse<AttackResultDto>> FightWeapon(WeaponAttackDto fight);
         Task<ServiceResponse<FightResultDto>> FinalFight(FightRequestDto fight);
+        Task<ServiceResponse<List<HighScoreDto>>> GetHighScore();
 
     }
 }

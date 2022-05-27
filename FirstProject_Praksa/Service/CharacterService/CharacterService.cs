@@ -24,6 +24,7 @@ namespace FirstProject_Praksa.Service.CharacterService
         {
             return int.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
         }
+        private string GetUserRole() =>  _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
         public async Task<ServiceResponse<List<GetCharacterDtos>>> AddNewCharacter(AddCharacterDtos newCharacter)
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDtos>>();
@@ -93,7 +94,8 @@ namespace FirstProject_Praksa.Service.CharacterService
         public async Task<ServiceResponse<List<GetCharacterDtos>>> GetAll()
         {
             var serviceResponse=new ServiceResponse<List<GetCharacterDtos>>();
-            var list=await _dataContext.Characters.Include(x=>x.User).Include(x=>x.Weapon).Where(x=>x.User.Id==GetUserID()).ToListAsync();
+            var list = GetUserRole().Equals("Admin") ? await _dataContext.Characters.Include(c => c.User).Include(c => c.Weapon).ToListAsync()
+                                                     : await _dataContext.Characters.Include(x=>x.User).Include(x=>x.Weapon).Where(x=>x.User.Id==GetUserID()).ToListAsync();
             serviceResponse.Data = _mapper.Map<List<GetCharacterDtos>>(list);
             serviceResponse.Message = "Successfully returned all characters!";
             return serviceResponse;
